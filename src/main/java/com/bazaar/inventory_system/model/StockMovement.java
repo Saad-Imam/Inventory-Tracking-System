@@ -31,6 +31,18 @@ public class StockMovement {
     public StockMovement() {
     }
 
+    public StockMovement(Long stockMovementId, Long storeId, Long productId, Integer quantityChange,
+                         String movementType, LocalDateTime timestamp, Store store, Product product) {
+        this.stockMovementId = stockMovementId;
+        this.storeId = storeId;
+        this.productId = productId;
+        this.quantityChange = quantityChange;
+        this.movementType = movementType;
+        this.timestamp = timestamp;
+        this.store = store;
+        this.product = product;
+    }
+
     public Product getProduct() {
         return product;
     }

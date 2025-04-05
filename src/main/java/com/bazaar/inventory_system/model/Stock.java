@@ -26,6 +26,14 @@ public class Stock {
     public Stock() {
     }
 
+    public Stock(Long storeId, Long productId, Integer quantity, Store store, Product product) {
+        this.storeId = storeId;
+        this.productId = productId;
+        this.quantity = quantity;
+        this.store = store;
+        this.product = product;
+    }
+
     public Long getStoreId() {
         return storeId;
     }
