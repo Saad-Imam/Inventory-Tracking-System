@@ -1,5 +1,8 @@
 package com.bazaar.inventory_system.controller;
 
+import com.bazaar.inventory_system.exception.InsufficientStockException;
+import com.bazaar.inventory_system.exception.InvalidStockRequestException;
+import com.bazaar.inventory_system.exception.ProductNotFoundException;
 import com.bazaar.inventory_system.model.Stock;
 import com.bazaar.inventory_system.model.StockId;
 import com.bazaar.inventory_system.model.StockMovement;
@@ -43,93 +46,98 @@ public class StockController {
     public ResponseEntity<Stock> addStock(
             @PathVariable Long storeId,
             @RequestBody Stock stock) {
-        StockId stockId = new StockId();
-        stockId.setStoreId(storeId);
-        stockId.setProductId(stock.getProductId());
-        stock.setStoreId(storeId);
 
-        Optional<Stock> existingStock = stockRepository.findById(stockId);
-        if (existingStock.isPresent()) {
-            Stock stockToUpdate = existingStock.get();
-            stockToUpdate.setQuantity(stockToUpdate.getQuantity() + stock.getQuantity());
-            stockRepository.save(stockToUpdate);
-        } else {
-            stockRepository.save(stock);
+        // Validate input
+        if (stock.getQuantity() <= 0) {
+            throw new InvalidStockRequestException("Quantity must be positive");
         }
 
-        // Create a StockMovement record
-        StockMovement stockMovement = new StockMovement();
-        stockMovement.setStoreId(storeId);
-        stockMovement.setProductId(stock.getProductId());
-        stockMovement.setQuantityChange(stock.getQuantity());
-        stockMovement.setMovementType("Stock-In");
-        stockMovement.setTimestamp(LocalDateTime.now());
-        stockMovementRepository.save(stockMovement);
+        StockId stockId = new StockId(storeId, stock.getProductId());
+        stock.setStoreId(storeId);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(stock);
+        Stock updatedStock = stockRepository.findById(stockId)
+                .map(existingStock -> {
+                    existingStock.setQuantity(existingStock.getQuantity() + stock.getQuantity());
+                    return stockRepository.save(existingStock);
+                })
+                .orElseGet(() -> stockRepository.save(stock));
+
+        // Record movement
+        createStockMovement(storeId, stock.getProductId(), stock.getQuantity(), "Stock-In");
+        return ResponseEntity.status(HttpStatus.CREATED).body(updatedStock);
     }
-
     @PostMapping("/sell")
     public ResponseEntity<Stock> sellProduct(
             @PathVariable Long storeId,
             @RequestBody Stock stock) {
-        StockId stockId = new StockId();
-        stockId.setStoreId(storeId);
-        stockId.setProductId(stock.getProductId());
 
-        Optional<Stock> existingStock = stockRepository.findById(stockId);
-        if (existingStock.isPresent()) {
-            Stock stockToUpdate = existingStock.get();
-            if (stockToUpdate.getQuantity() >= stock.getQuantity()) {
-                stockToUpdate.setQuantity(stockToUpdate.getQuantity() - stock.getQuantity());
-                stockRepository.save(stockToUpdate);
+        validateStockRequest(stock);
+        StockId stockId = new StockId(storeId, stock.getProductId());
 
-                // Create a StockMovement record
-                StockMovement stockMovement = new StockMovement();
-                stockMovement.setStoreId(storeId);
-                stockMovement.setProductId(stock.getProductId());
-                stockMovement.setQuantityChange(-stock.getQuantity());
-                stockMovement.setMovementType("Sale");
-                stockMovement.setTimestamp(LocalDateTime.now());
-                stockMovementRepository.save(stockMovement);
-                return ResponseEntity.ok(stockToUpdate);
-            } else {
-                return ResponseEntity.badRequest().body(null); // Or throw an exception: "Insufficient stock"
-            }
-        } else {
-            return ResponseEntity.notFound().build(); // Or throw an exception: "Product not found in stock"
-        }
+        Stock updatedStock = stockRepository.findById(stockId)
+                .map(existingStock -> {
+                    if (existingStock.getQuantity() < stock.getQuantity()) {
+                        throw new InsufficientStockException(
+                                stock.getProductId(),
+                                stock.getQuantity(),
+                                existingStock.getQuantity()
+                        );
+                    }
+                    existingStock.setQuantity(existingStock.getQuantity() - stock.getQuantity());
+                    return stockRepository.save(existingStock);
+                })
+                .orElseThrow(() -> new ProductNotFoundException(stock.getProductId(), storeId));
+
+        createStockMovement(storeId, stock.getProductId(), -stock.getQuantity(), "Sale");
+        return ResponseEntity.ok(updatedStock);
     }
 
     @PostMapping("/remove-stock")
     public ResponseEntity<Stock> removeStock(
             @PathVariable Long storeId,
             @RequestBody Stock stock) {
-        StockId stockId = new StockId();
-        stockId.setStoreId(storeId);
-        stockId.setProductId(stock.getProductId());
 
-        Optional<Stock> existingStock = stockRepository.findById(stockId);
-        if (existingStock.isPresent()) {
-            Stock stockToUpdate = existingStock.get();
-            if (stockToUpdate.getQuantity() >= stock.getQuantity()) {
-                stockToUpdate.setQuantity(stockToUpdate.getQuantity() - stock.getQuantity());
-                stockRepository.save(stockToUpdate);
+        // Validate input
+        if (stock.getQuantity() <= 0) {
+            throw new InvalidStockRequestException("Quantity must be positive");
+        }
 
-                // Create a StockMovement record
-                StockMovement stockMovement = new StockMovement();
-                stockMovement.setStoreId(storeId);
-                stockMovement.setProductId(stock.getProductId());
-                stockMovement.setQuantityChange(-stock.getQuantity());
-                stockMovement.setMovementType("Removal");
-                stockMovement.setTimestamp(LocalDateTime.now());
-                stockMovementRepository.save(stockMovement);
-                return ResponseEntity.ok(stockToUpdate);
-            } else {
-                return ResponseEntity.badRequest().body(null); // Or throw an exception: "Insufficient stock"
-            }
-        } else {
-            return ResponseEntity.notFound().build(); // Or throw an exception: "Product not found in stock"
+        StockId stockId = new StockId(storeId, stock.getProductId());
+
+        // Find and validate stock
+        Stock updatedStock = stockRepository.findById(stockId)
+                .map(existingStock -> {
+                    if (existingStock.getQuantity() < stock.getQuantity()) {
+                        throw new InsufficientStockException(
+                                stock.getProductId(),
+                                stock.getQuantity(),
+                                existingStock.getQuantity()
+                        );
+                    }
+                    existingStock.setQuantity(existingStock.getQuantity() - stock.getQuantity());
+                    return stockRepository.save(existingStock);
+                })
+                .orElseThrow(() -> new ProductNotFoundException(stock.getProductId(), storeId));
+
+        // Record movement
+        createStockMovement(storeId, stock.getProductId(), -stock.getQuantity(), "Removal");
+        return ResponseEntity.ok(updatedStock);
+    }
+    // --- Helper Methods ---
+    private void validateStockRequest(Stock stock) {
+        if (stock.getQuantity() <= 0) {
+            throw new InvalidStockRequestException("Quantity must be positive");
         }
     }
+
+    private void createStockMovement(Long storeId, Long productId, int quantityChange, String movementType) {
+        StockMovement movement = new StockMovement();
+        movement.setStoreId(storeId);
+        movement.setProductId(productId);
+        movement.setQuantityChange(quantityChange);
+        movement.setMovementType(movementType);
+        movement.setTimestamp(LocalDateTime.now());
+        stockMovementRepository.save(movement);
+    }
+
 }

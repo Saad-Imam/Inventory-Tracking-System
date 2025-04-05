@@ -1,5 +1,6 @@
 package com.bazaar.inventory_system.model;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 /* Jakarta Persistence API (JPA) is a standard specification
 for managing relational data in Java applications
 * */
@@ -11,9 +12,16 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY) //increment automatically
     private Long productId;
 
+    @NotBlank(message = "Product name is mandatory")
+    @Size(max = 100, message = "Name must be ≤100 characters")
     private String name;
+
+    @Size(max = 50, message = "Category must be ≤50 characters")
     private String category;
+
     private BigDecimal price;
+
+    @Size(max = 500, message = "Description must be ≤500 characters")
     private String description;
 
     // Constructors, Getters, and Setters

@@ -1,6 +1,7 @@
 package com.bazaar.inventory_system.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 @Entity
 @IdClass(StockId.class)
@@ -13,6 +14,7 @@ public class Stock {
     @Column(name = "product_id")
     private Long productId;
 
+    @Min(value = 0, message = "Quantity cannot be negative")
     private Integer quantity;
 
     @ManyToOne
@@ -73,6 +75,5 @@ public class Stock {
     public void setProduct(Product product) {
         this.product = product;
     }
-// Constructors, Getters, and Setters
 }
 

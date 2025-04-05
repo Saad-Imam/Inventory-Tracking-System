@@ -21,8 +21,14 @@ public class StockId implements Serializable {
 
     // Constructors, Getters, and Setters (must include hashCode and equals)
 
-    public StockId() {}
+    public StockId() {
 
+    }
+
+    public StockId(Long storeId, Long productId) {
+        this.storeId = storeId;
+        this.productId = productId;
+    }
 
     public Long getStoreId() {
         return storeId;

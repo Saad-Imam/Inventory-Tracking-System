@@ -8,5 +8,12 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
 
     List<StockMovement> findByStoreIdAndProductIdAndTimestampBetween(
             Long storeId, Long productId, LocalDateTime startDate, LocalDateTime endDate);
+    List<StockMovement> findByStoreId(
+            Long storeId);
+    List<StockMovement> findByStoreIdAndTimestampBetween(
+            Long storeId, LocalDateTime startDate, LocalDateTime endDate);
+    List<StockMovement> findByStoreIdAndProductId(
+            Long storeId, Long productId);
+
 }
 

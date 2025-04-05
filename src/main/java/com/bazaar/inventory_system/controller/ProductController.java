@@ -1,8 +1,13 @@
 package com.bazaar.inventory_system.controller;
 
+import com.bazaar.inventory_system.exception.InvalidProductRequestException;
+import com.bazaar.inventory_system.exception.ProductNotFoundException;
 import com.bazaar.inventory_system.model.Product;
 import com.bazaar.inventory_system.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired; //for dependency injection
+import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*; //annotations to handle web requests from Spring MVC web framework
 import java.util.List;
 import java.util.Optional;/*
@@ -18,24 +23,86 @@ public class ProductController {
     private ProductRepository productRepository;
 
     @GetMapping //GET HTTP requests mapping
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    public ResponseEntity<List<Product>> getAllProducts() {
+        List<Product> products = productRepository.findAll();
+        return ResponseEntity.ok(products);
     }
 
     @GetMapping("/{productId}")
-    public Optional<Product> getProductById(@PathVariable Long productId) {
-        //@PathVariable allows accessing variables enclosed with {} in the path
-        return productRepository.findById(productId);
+    //@PathVariable allows accessing variables enclosed with {} in the path
+    public ResponseEntity<Product> getProductById(@PathVariable Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
+        return ResponseEntity.ok(product);
+    }
+    @GetMapping("/search")
+    public ResponseEntity<List<Product>> searchProducts(
+            @PathVariable Long storeId,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String category) {
+
+        // Case 1: Both name and category provided
+        if (name != null && category != null) {
+            List<Product> products = productRepository.findByNameContainingIgnoreCaseAndCategory(name, category);
+            return ResponseEntity.ok(products);
+        }
+        // Case 2: Only name provided
+        else if (name != null) {
+            List<Product> products = productRepository.findByNameContainingIgnoreCase(name);
+            return ResponseEntity.ok(products);
+        }
+        // Case 3: Only category provided
+        else if (category != null) {
+            List<Product> products = productRepository.findByCategory(category);
+            return ResponseEntity.ok(products);
+        }
+        // Case 4: No filters provided
+        else {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PostMapping //POST HTTP request mapping
-    public Product createProduct(@RequestBody Product product) {
-        /*
-         @RequestBody Product product annotation indicates that the method expects the request body to contain a JSON
+     /*
+         @RequestBody annotation indicates that the method expects the request body to contain a JSON
           representation of a Product object. Spring will automatically convert this JSON into a Product instance
          */
-        return productRepository.save(product);
+    public ResponseEntity<Product> createProduct(
+            @PathVariable Long storeId,
+            @Valid @RequestBody Product product) {
+        Product savedProduct = productRepository.save(product);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct);
     }
 
-    // Add update and delete methods as needed
+    // UPDATE product
+    @PutMapping("/{productId}")
+    public ResponseEntity<Product> updateProduct(
+            @PathVariable Long productId,
+            @Valid @RequestBody Product productDetails) {
+
+        // Verify product exists
+        Product existingProduct = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
+
+        existingProduct.setName(productDetails.getName());
+        existingProduct.setDescription(productDetails.getDescription());
+        existingProduct.setPrice(productDetails.getPrice());
+        existingProduct.setCategory(productDetails.getCategory());
+
+        Product updatedProduct = productRepository.save(existingProduct);
+        return ResponseEntity.ok(updatedProduct);
+    }
+    // DELETE product
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<Void> deleteProduct(
+            @PathVariable Long storeId,
+            @PathVariable Long productId) {
+
+        // Verify product exists
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
+
+        productRepository.delete(product);
+        return ResponseEntity.noContent().build();
+    }
 }

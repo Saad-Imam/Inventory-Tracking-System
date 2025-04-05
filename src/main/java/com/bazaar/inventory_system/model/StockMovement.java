@@ -1,5 +1,7 @@
 package com.bazaar.inventory_system.model;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -8,14 +10,20 @@ public class StockMovement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long stockMovementId;
 
+    @NotNull
     @Column(name = "store_id")
     private Long storeId;
 
     @Column(name = "product_id")
     private Long productId;
 
+    @Min(value=1)
     private Integer quantityChange;
+
+    @NotBlank(message = "Movement type is mandatory")
     private String movementType;
+
+    @PastOrPresent(message = "Timestamp cannot be in the future")
     private LocalDateTime timestamp;
 
     @ManyToOne

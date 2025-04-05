@@ -29,5 +29,4 @@ public class VendorController {
         return vendorRepository.save(vendor);
     }
 
-    // Add update and delete methods as needed
 }
