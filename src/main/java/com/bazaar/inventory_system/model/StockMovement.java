@@ -17,7 +17,6 @@ public class StockMovement {
     @Column(name = "product_id")
     private Long productId;
 
-    @Min(value=1)
     private Integer quantityChange;
 
     @NotBlank(message = "Movement type is mandatory")

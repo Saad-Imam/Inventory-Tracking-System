@@ -27,9 +27,10 @@ public class StockController {
     private StockMovementRepository stockMovementRepository;
 
     @GetMapping("/stock")
-    public List<Stock> getAllStockForStore(@PathVariable Long storeId) {
+    public ResponseEntity<List<Stock>>  getAllStockForStore(@PathVariable Long storeId) {
         // This might need a custom query in StockRepository for more complex filtering
-        return stockRepository.findAll(); // Simplest version for now
+        List<Stock> stock = stockRepository.findByStoreId(storeId);
+        return ResponseEntity.ok(stock);
     }
 
     @GetMapping("/stock/{productId}")
@@ -71,25 +72,33 @@ public class StockController {
             @PathVariable Long storeId,
             @RequestBody Stock stock) {
 
-        validateStockRequest(stock);
+        // Validate input
+        if (stock.getQuantity() <= 0) {
+            throw new InvalidStockRequestException("Sale quantity must be positive");
+        }
+
         StockId stockId = new StockId(storeId, stock.getProductId());
+        Stock existingStock = stockRepository.findById(stockId)
+                .orElseThrow(() -> new ProductNotFoundException(stock.getProductId()));
 
-        Stock updatedStock = stockRepository.findById(stockId)
-                .map(existingStock -> {
-                    if (existingStock.getQuantity() < stock.getQuantity()) {
-                        throw new InsufficientStockException(
-                                stock.getProductId(),
-                                stock.getQuantity(),
-                                existingStock.getQuantity()
-                        );
-                    }
-                    existingStock.setQuantity(existingStock.getQuantity() - stock.getQuantity());
-                    return stockRepository.save(existingStock);
-                })
-                .orElseThrow(() -> new ProductNotFoundException(stock.getProductId(), storeId));
+        // Check sufficient stock
+        if (existingStock.getQuantity() < stock.getQuantity()) {
+            throw new InsufficientStockException(storeId, stock.getQuantity(), existingStock.getQuantity());
+        }
 
-        createStockMovement(storeId, stock.getProductId(), -stock.getQuantity(), "Sale");
-        return ResponseEntity.ok(updatedStock);
+        // Update stock
+        existingStock.setQuantity(existingStock.getQuantity() - stock.getQuantity());
+        stockRepository.save(existingStock);
+
+        // Record movement with NEGATIVE quantity
+        StockMovement movement = new StockMovement();
+        movement.setStoreId(storeId);
+        movement.setProductId(stock.getProductId());
+        movement.setQuantityChange(-stock.getQuantity()); // Negative for sales
+        movement.setMovementType("SALE");
+        stockMovementRepository.save(movement);
+
+        return ResponseEntity.ok(existingStock);
     }
 
     @PostMapping("/remove-stock")

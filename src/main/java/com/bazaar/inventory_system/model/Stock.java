@@ -1,5 +1,6 @@
 package com.bazaar.inventory_system.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
@@ -17,12 +18,14 @@ public class Stock {
     @Min(value = 0, message = "Quantity cannot be negative")
     private Integer quantity;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "store_id", insertable = false, updatable = false)
+    @JsonIgnore
     private Store store;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id", insertable = false, updatable = false)
+    @JsonIgnore
     private Product product;
 
     public Stock() {
