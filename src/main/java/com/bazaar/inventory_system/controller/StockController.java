@@ -9,6 +9,7 @@ import com.bazaar.inventory_system.model.StockMovement;
 import com.bazaar.inventory_system.repository.StockMovementRepository;
 import com.bazaar.inventory_system.repository.StockRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,11 +29,61 @@ public class StockController {
 
     @GetMapping("/stock")
     public ResponseEntity<List<Stock>>  getAllStockForStore(@PathVariable Long storeId) {
-        // This might need a custom query in StockRepository for more complex filtering
         List<Stock> stock = stockRepository.findByStoreId(storeId);
         return ResponseEntity.ok(stock);
     }
+    // Get all stock for all stores with optional filters for productId, category, and name
+    @GetMapping("/filter")
+    public ResponseEntity<List<Stock>> filterAllStock(
+            @RequestParam(required = false) Long productId,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String name) {
 
+        List<Stock> stocks;
+
+        if (productId != null && category != null && name != null) {
+            stocks = stockRepository.findByProductIdAndCategoryAndName(productId, category, name);
+        } else if (productId != null && category != null) {
+            stocks = stockRepository.findByProductIdAndCategory(productId, category);
+        } else if (productId != null && name != null) {
+            stocks = stockRepository.findByProductIdAndName(productId, name);
+        } else if (category != null && name != null) {
+            stocks = stockRepository.findByCategoryAndName(category, name);
+        } else if (productId != null) {
+            stocks = stockRepository.findByProductId(productId);
+        } else if (category != null) {
+            stocks = stockRepository.findByCategory(category);
+        } else if (name != null) {
+            stocks = stockRepository.findByName(name);
+        } else {
+            stocks = stockRepository.findAll(); // Default: get all stock
+        }
+
+        return ResponseEntity.ok(stocks);
+    }
+    // New method to filter stock by name or category within a specific store
+    @GetMapping("/filter/{storeId}")
+    public ResponseEntity<List<Stock>> filterStockByStore(
+            @PathVariable Long storeId,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String category) {
+
+        List<Stock> stocks;
+
+        // Call the repository method to filter stock by storeId, name or category
+        if (name != null && category != null) {
+            stocks = stockRepository.findByStoreIdAndNameOrCategory(storeId, name, category);
+        } else if (name != null) {
+            stocks = stockRepository.findByStoreIdAndNameOrCategory(storeId, name, null);
+        } else if (category != null) {
+            stocks = stockRepository.findByStoreIdAndNameOrCategory(storeId, null, category);
+        } else {
+            // Return all stock in the store if no filters provided
+            stocks = stockRepository.findByStoreId(storeId);
+        }
+
+        return ResponseEntity.ok(stocks);
+    }
     @GetMapping("/stock/{productId}")
     public Optional<Stock> getStockForProduct(
             @PathVariable Long storeId,
