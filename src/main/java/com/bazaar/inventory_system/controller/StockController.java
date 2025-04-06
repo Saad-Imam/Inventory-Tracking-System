@@ -3,11 +3,11 @@ package com.bazaar.inventory_system.controller;
 import com.bazaar.inventory_system.exception.InsufficientStockException;
 import com.bazaar.inventory_system.exception.InvalidStockRequestException;
 import com.bazaar.inventory_system.exception.ProductNotFoundException;
-import com.bazaar.inventory_system.model.Stock;
-import com.bazaar.inventory_system.model.StockId;
-import com.bazaar.inventory_system.model.StockMovement;
+import com.bazaar.inventory_system.model.*;
+import com.bazaar.inventory_system.repository.ManagerRepository;
 import com.bazaar.inventory_system.repository.StockMovementRepository;
 import com.bazaar.inventory_system.repository.StockRepository;
+import com.bazaar.inventory_system.repository.VendorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -28,6 +28,12 @@ public class StockController {
 
     @Autowired
     private StockMovementRepository stockMovementRepository;
+
+    @Autowired
+    private ManagerRepository managerRepository;
+
+    @Autowired
+    private VendorRepository vendorRepository;
 
     @Cacheable(value = "stockByStore", key = "#storeId")
     @GetMapping("/stock")
@@ -100,6 +106,8 @@ public class StockController {
     @PostMapping("/stock-in")
     public ResponseEntity<Stock> addStock(
             @PathVariable Long storeId,
+            @RequestParam Long managerId,
+            @RequestParam Long vendorId,
             @RequestBody Stock stock) {
 
         // Validate input
@@ -117,10 +125,12 @@ public class StockController {
                 })
                 .orElseGet(() -> stockRepository.save(stock));
 
-        // Record movement
-        createStockMovement(storeId, stock.getProductId(), stock.getQuantity(), "Stock-In");
+        // Record movement with manager and vendor
+        createStockMovement(storeId, stock.getProductId(), stock.getQuantity(), "Stock-In", managerId, vendorId);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(updatedStock);
     }
+
     @PostMapping("/sell")
     public ResponseEntity<Stock> sellProduct(
             @PathVariable Long storeId,
@@ -200,6 +210,23 @@ public class StockController {
         movement.setQuantityChange(quantityChange);
         movement.setMovementType(movementType);
         movement.setTimestamp(LocalDateTime.now());
+        stockMovementRepository.save(movement);
+    }
+    private void createStockMovement(Long storeId, Long productId, int quantityChange, String movementType, Long managerId, Long vendorId) {
+        // Fetch manager and vendor from repositories
+        Manager manager = managerRepository.findById(managerId).orElseThrow(() -> new IllegalArgumentException("Manager not found"));
+        Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(() -> new IllegalArgumentException("Vendor not found"));
+
+        // Create and save StockMovement
+        StockMovement movement = new StockMovement();
+        movement.setStoreId(storeId);
+        movement.setProductId(productId);
+        movement.setQuantityChange(quantityChange);
+        movement.setMovementType(movementType);
+        movement.setTimestamp(LocalDateTime.now());
+        movement.setManager(manager);
+        movement.setVendor(vendor);
+
         stockMovementRepository.save(movement);
     }
 

@@ -2,8 +2,12 @@ package com.bazaar.inventory_system.controller;
 
 import com.bazaar.inventory_system.exception.InvalidStockMovementException;
 import com.bazaar.inventory_system.exception.StockMovementNotFoundException;
+import com.bazaar.inventory_system.model.Manager;
 import com.bazaar.inventory_system.model.StockMovement;
+import com.bazaar.inventory_system.model.Vendor;
+import com.bazaar.inventory_system.repository.ManagerRepository;
 import com.bazaar.inventory_system.repository.StockMovementRepository;
+import com.bazaar.inventory_system.repository.VendorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -22,6 +26,12 @@ public class StockMovementController {
 
     @Autowired
     private StockMovementRepository stockMovementRepository;
+
+    @Autowired
+    private ManagerRepository managerRepository;
+
+    @Autowired
+    private VendorRepository vendorRepository;
 
     // GET all stock movements with optional filters
     @Cacheable(value = "stockMovements", key = "#storeId")
@@ -77,6 +87,8 @@ public class StockMovementController {
     @PostMapping
     public ResponseEntity<StockMovement> createStockMovement(
             @PathVariable Long storeId,
+            @RequestParam Long managerId,
+            @RequestParam Long vendorId,
             @Valid @RequestBody StockMovement stockMovement) {
 
         // Validate store ID consistency
@@ -90,11 +102,16 @@ public class StockMovementController {
             throw new InvalidStockMovementException("Quantity change cannot be zero");
         }
 
+        // Fetch manager and vendor
+        Manager manager = managerRepository.findById(managerId).orElseThrow(() -> new IllegalArgumentException("Manager not found"));
+        Vendor vendor = vendorRepository.findById(vendorId).orElseThrow(() -> new IllegalArgumentException("Vendor not found"));
+        stockMovement.setManager(manager);
+        stockMovement.setVendor(vendor);
+
         // Auto-set timestamp if not provided
         if (stockMovement.getTimestamp() == null) {
             stockMovement.setTimestamp(LocalDateTime.now());
         }
-
         StockMovement savedMovement = stockMovementRepository.save(stockMovement);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedMovement);
     }

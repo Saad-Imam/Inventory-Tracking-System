@@ -15,17 +15,17 @@ public class ManagerController {
     private ManagerRepository managerRepository;
 
     @GetMapping
-    public List<Manager> getAllUsers() {
+    public List<Manager> getAllManagers() {
         return managerRepository.findAll();
     }
 
     @GetMapping("/{managerId}")
-    public Optional<Manager> getUserById(@PathVariable Long userId) {
-        return managerRepository.findById(userId);
+    public Optional<Manager> getManagerById(@PathVariable Long managerId) {
+        return managerRepository.findById(managerId);
     }
 
     @PostMapping
-    public Manager createUser(@RequestBody Manager user) {
+    public Manager createManager(@RequestBody Manager user) {
         return managerRepository.save(user);
     }
 

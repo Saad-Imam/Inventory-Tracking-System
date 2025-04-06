@@ -29,4 +29,10 @@ public class VendorController {
         return vendorRepository.save(vendor);
     }
 
+    @DeleteMapping("/{vendorId}")
+    public void deleteVendor(@PathVariable Long vendorId) {
+        vendorRepository.deleteById(vendorId);
+    }
+
+
 }
