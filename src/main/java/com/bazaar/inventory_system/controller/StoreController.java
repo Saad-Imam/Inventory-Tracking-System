@@ -5,6 +5,8 @@ import com.bazaar.inventory_system.exception.StoreNotFoundException;
 import com.bazaar.inventory_system.model.Store;
 import com.bazaar.inventory_system.repository.StoreRepository;
 import jakarta.validation.Valid;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ public class StoreController {
     private StoreRepository storeRepository;
 
     // GET all stores
+    @Cacheable(value = "stores")
     @GetMapping
     public ResponseEntity<List<Store>> getAllStores() {
         List<Store> stores = storeRepository.findAll();
@@ -27,6 +30,7 @@ public class StoreController {
     }
 
     // GET store by ID
+    @Cacheable(value = "storeById", key = "#storeId")
     @GetMapping("/{storeId}")
     public ResponseEntity<Store> getStoreById(@PathVariable Long storeId) {
         Store store = storeRepository.findById(storeId)
@@ -48,6 +52,7 @@ public class StoreController {
     }
 
     // UPDATE store
+    @CacheEvict(value = "storeById", key = "#storeId")
     @PutMapping("/{storeId}")
     public ResponseEntity<Store> updateStore(
             @PathVariable Long storeId,
@@ -74,6 +79,7 @@ public class StoreController {
     }
 
     // DELETE store
+    @CacheEvict(value = "storeById", key = "#storeId")
     @DeleteMapping("/{storeId}")
     public ResponseEntity<Void> deleteStore(@PathVariable Long storeId) {
         // Verify store exists

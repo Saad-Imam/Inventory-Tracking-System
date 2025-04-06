@@ -5,6 +5,9 @@ import com.bazaar.inventory_system.exception.StockMovementNotFoundException;
 import com.bazaar.inventory_system.model.StockMovement;
 import com.bazaar.inventory_system.repository.StockMovementRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +24,7 @@ public class StockMovementController {
     private StockMovementRepository stockMovementRepository;
 
     // GET all stock movements with optional filters
+    @Cacheable(value = "stockMovements", key = "#storeId")
     @GetMapping
     public ResponseEntity<List<StockMovement>> getStockMovements(
             @PathVariable Long storeId,
@@ -50,6 +54,7 @@ public class StockMovementController {
         return ResponseEntity.ok(movements);
     }
     // GET specific stock movement
+    @Cacheable(value = "stockMovementById", key = "#storeId + '-' + #movementId")
     @GetMapping("/{movementId}")
     public ResponseEntity<StockMovement> getStockMovement(
             @PathVariable Long storeId,
@@ -68,6 +73,7 @@ public class StockMovementController {
     }
 
     // CREATE stock movement
+    @CacheEvict(value = "stockMovements", key = "#stockMovement.storeId")
     @PostMapping
     public ResponseEntity<StockMovement> createStockMovement(
             @PathVariable Long storeId,
@@ -94,6 +100,8 @@ public class StockMovementController {
     }
 
     // DELETE stock movement
+    @Caching(evict = {@CacheEvict(value = "stockMovements", key = "#storeId"),
+                      @CacheEvict(value = "stockMovementById", key = "#movementId")})
     @DeleteMapping("/{movementId}")
     public ResponseEntity<Void> deleteStockMovement(
             @PathVariable Long storeId,

@@ -4,6 +4,8 @@ import com.bazaar.inventory_system.exception.InvalidProductRequestException;
 import com.bazaar.inventory_system.exception.ProductNotFoundException;
 import com.bazaar.inventory_system.model.Product;
 import com.bazaar.inventory_system.repository.ProductRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.beans.factory.annotation.Autowired; //for dependency injection
 import org.springframework.http.HttpStatus;
 import jakarta.validation.Valid;
@@ -22,12 +24,13 @@ public class ProductController {
     @Autowired //inject an instance of this class automatically
     private ProductRepository productRepository;
 
+    @Cacheable(value = "products")
     @GetMapping //GET HTTP requests mapping
     public ResponseEntity<List<Product>> getAllProducts() {
         List<Product> products = productRepository.findAll();
         return ResponseEntity.ok(products);
     }
-
+    @Cacheable(value = "productById", key = "#productId")
     @GetMapping("/{productId}")
     //@PathVariable allows accessing variables enclosed with {} in the path
     public ResponseEntity<Product> getProductById(@PathVariable Long productId) {
@@ -74,7 +77,7 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct);
     }
 
-    // UPDATE product
+    @CacheEvict(value = "productById", key = "#productId")
     @PutMapping("/{productId}")
     public ResponseEntity<Product> updateProduct(
             @PathVariable Long productId,
@@ -93,6 +96,7 @@ public class ProductController {
         return ResponseEntity.ok(updatedProduct);
     }
     // DELETE product
+    @CacheEvict(value = "productById", key = "#productId")
     @DeleteMapping("/{productId}")
     public ResponseEntity<Void> deleteProduct(
             @PathVariable Long storeId,
