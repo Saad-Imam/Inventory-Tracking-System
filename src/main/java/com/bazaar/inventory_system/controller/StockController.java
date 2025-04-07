@@ -41,37 +41,8 @@ public class StockController {
         List<Stock> stock = stockRepository.findByStoreId(storeId);
         return ResponseEntity.ok(stock);
     }
-    // Get all stock for all stores with optional filters for productId, category, and name
-    @GetMapping("/filter")
-    public ResponseEntity<List<Stock>> filterAllStock(
-            @RequestParam(required = false) Long productId,
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String name) {
-
-        List<Stock> stocks;
-
-        if (productId != null && category != null && name != null) {
-            stocks = stockRepository.findByProductIdAndCategoryAndName(productId, category, name);
-        } else if (productId != null && category != null) {
-            stocks = stockRepository.findByProductIdAndCategory(productId, category);
-        } else if (productId != null && name != null) {
-            stocks = stockRepository.findByProductIdAndName(productId, name);
-        } else if (category != null && name != null) {
-            stocks = stockRepository.findByCategoryAndName(category, name);
-        } else if (productId != null) {
-            stocks = stockRepository.findByProductId(productId);
-        } else if (category != null) {
-            stocks = stockRepository.findByCategory(category);
-        } else if (name != null) {
-            stocks = stockRepository.findByName(name);
-        } else {
-            stocks = stockRepository.findAll(); // Default: get all stock
-        }
-
-        return ResponseEntity.ok(stocks);
-    }
     // New method to filter stock by name or category within a specific store
-    @GetMapping("/filter/{storeId}")
+    @GetMapping("/filter")
     public ResponseEntity<List<Stock>> filterStockByStore(
             @PathVariable Long storeId,
             @RequestParam(required = false) String name,
