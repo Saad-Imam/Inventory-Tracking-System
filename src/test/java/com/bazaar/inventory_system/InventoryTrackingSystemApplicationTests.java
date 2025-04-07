@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
-@Import(TestConfig.class)
 @ActiveProfiles("test")
 class InventoryTrackingSystemApplicationTests {
 

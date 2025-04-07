@@ -32,7 +32,7 @@ class StockControllerTest extends TestBase {
         Store store = createTestStore();
         ResponseEntity<Store> storeResponse = restTemplate.postForEntity(
                 baseUrl + "/stores",
-                new HttpEntity<>(store, createHeaders("admin", "admin")),
+                new HttpEntity<>(store),
                 Store.class);
         storeId = extractResponseBody(storeResponse, "Store").getStoreId();
 
@@ -40,7 +40,7 @@ class StockControllerTest extends TestBase {
         Product product = createTestProduct();
         ResponseEntity<Product> productResponse = restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/products",
-                new HttpEntity<>(product, createHeaders("admin", "admin")),
+                new HttpEntity<>(product),
                 Product.class);
         productId = extractResponseBody(productResponse, "Product").getProductId();
 
@@ -48,7 +48,7 @@ class StockControllerTest extends TestBase {
         Manager manager = createTestManager();
         ResponseEntity<Manager> managerResponse = restTemplate.postForEntity(
                 baseUrl + "/managers",
-                new HttpEntity<>(manager, createHeaders("admin", "admin")),
+                new HttpEntity<>(manager),
                 Manager.class);
         managerId = extractResponseBody(managerResponse, "Manager").getmanagerId();
 
@@ -56,7 +56,7 @@ class StockControllerTest extends TestBase {
         Vendor vendor = createTestVendor();
         ResponseEntity<Vendor> vendorResponse = restTemplate.postForEntity(
                 baseUrl + "/vendors",
-                new HttpEntity<>(vendor, createHeaders("admin", "admin")),
+                new HttpEntity<>(vendor),
                 Vendor.class);
         vendorId = extractResponseBody(vendorResponse, "Vendor").getVendorId();
     }
@@ -67,7 +67,7 @@ class StockControllerTest extends TestBase {
 
         ResponseEntity<Stock> response = restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/stock-in?managerId=" + managerId + "&vendorId=" + vendorId,
-                new HttpEntity<>(stock, createHeaders("admin", "admin")),
+                new HttpEntity<>(stock),
                 Stock.class);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -81,14 +81,14 @@ class StockControllerTest extends TestBase {
         Stock stock = createTestStock(storeId, productId, 10);
         restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/stock-in?managerId=" + managerId + "&vendorId=" + vendorId,
-                new HttpEntity<>(stock, createHeaders("admin", "admin")),
+                new HttpEntity<>(stock),
                 Stock.class);
 
         // Then sell some
         Stock sale = createTestStock(storeId, productId, 5);
         ResponseEntity<Stock> response = restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/sell",
-                new HttpEntity<>(sale, createHeaders("admin", "admin")),
+                new HttpEntity<>(sale),
                 Stock.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -101,14 +101,14 @@ class StockControllerTest extends TestBase {
         Stock stock = createTestStock(storeId, productId, 10);
         restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/stock-in?managerId=" + managerId + "&vendorId=" + vendorId,
-                new HttpEntity<>(stock, createHeaders("admin", "admin")),
+                new HttpEntity<>(stock),
                 Stock.class);
 
         // Then remove some
         Stock removal = createTestStock(storeId, productId, 3);
         ResponseEntity<Stock> response = restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/remove-stock",
-                new HttpEntity<>(removal, createHeaders("admin", "admin")),
+                new HttpEntity<>(removal),
                 Stock.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -121,7 +121,7 @@ class StockControllerTest extends TestBase {
         Stock stock = createTestStock(storeId, productId, 10);
         restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/stock-in?managerId=" + managerId + "&vendorId=" + vendorId,
-                new HttpEntity<>(stock, createHeaders("admin", "admin")),
+                new HttpEntity<>(stock),
                 Stock.class);
 
         ResponseEntity<Stock[]> response = restTemplate.getForEntity(
@@ -138,7 +138,7 @@ class StockControllerTest extends TestBase {
         Stock stock = createTestStock(storeId, productId, 10);
         restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/stock-in?managerId=" + managerId + "&vendorId=" + vendorId,
-                new HttpEntity<>(stock, createHeaders("admin", "admin")),
+                new HttpEntity<>(stock),
                 Stock.class);
 
         // Filter by name

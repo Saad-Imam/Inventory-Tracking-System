@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
 
-import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -24,7 +23,7 @@ class ProductControllerTest extends TestBase {
         Store store = createTestStore();
         ResponseEntity<Store> response = restTemplate.postForEntity(
                 baseUrl + "/stores",
-                new HttpEntity<>(store, createHeaders("admin", "admin")),
+                new HttpEntity<>(store),
                 Store.class);
         // to combat NullPointerException warning
         assertNotNull(response, "Response should not be null");
@@ -38,7 +37,7 @@ class ProductControllerTest extends TestBase {
 
         ResponseEntity<Product> response = restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/products",
-                new HttpEntity<>(product, createHeaders("admin", "admin")),
+                new HttpEntity<>(product),
                 Product.class);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -52,7 +51,7 @@ class ProductControllerTest extends TestBase {
         Product product = createTestProduct();
         restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/products",
-                new HttpEntity<>(product, createHeaders("admin", "admin")),
+                new HttpEntity<>(product),
                 Product.class);
 
         ResponseEntity<Product[]> response = restTemplate.getForEntity(
@@ -69,7 +68,7 @@ class ProductControllerTest extends TestBase {
         Product product = createTestProduct();
         ResponseEntity<Product> createResponse = restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/products",
-                new HttpEntity<>(product, createHeaders("admin", "admin")),
+                new HttpEntity<>(product),
                 Product.class);
 
         Long productId = createResponse.getBody().getProductId();
@@ -89,7 +88,7 @@ class ProductControllerTest extends TestBase {
         Product product = createTestProduct();
         restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/products",
-                new HttpEntity<>(product, createHeaders("admin", "admin")),
+                new HttpEntity<>(product),
                 Product.class);
 
         // Search by name
@@ -115,7 +114,7 @@ class ProductControllerTest extends TestBase {
         Product product = createTestProduct();
         ResponseEntity<Product> createResponse = restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/products",
-                new HttpEntity<>(product, createHeaders("admin", "admin")),
+                new HttpEntity<>(product),
                 Product.class);
 
         Long productId = createResponse.getBody().getProductId();
@@ -125,7 +124,7 @@ class ProductControllerTest extends TestBase {
         ResponseEntity<Product> response = restTemplate.exchange(
                 baseUrl + "/stores/" + storeId + "/products/" + productId,
                 HttpMethod.PUT,
-                new HttpEntity<>(product, createHeaders("admin", "admin")),
+                new HttpEntity<>(product),
                 Product.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -138,7 +137,7 @@ class ProductControllerTest extends TestBase {
         Product product = createTestProduct();
         ResponseEntity<Product> createResponse = restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/products",
-                new HttpEntity<>(product, createHeaders("admin", "admin")),
+                new HttpEntity<>(product),
                 Product.class);
 
         Long productId = createResponse.getBody().getProductId();

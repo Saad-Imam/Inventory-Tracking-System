@@ -33,7 +33,7 @@ class StockMovementControllerTest extends TestBase {
         Store store = createTestStore();
         ResponseEntity<Store> storeResponse = restTemplate.postForEntity(
                 baseUrl + "/stores",
-                new HttpEntity<>(store, createHeaders("admin", "admin")),
+                new HttpEntity<>(store),
                 Store.class);
         storeId = extractResponseBody(storeResponse, "Store").getStoreId();
 
@@ -41,7 +41,7 @@ class StockMovementControllerTest extends TestBase {
         Product product = createTestProduct();
         ResponseEntity<Product> productResponse = restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/products",
-                new HttpEntity<>(product, createHeaders("admin", "admin")),
+                new HttpEntity<>(product),
                 Product.class);
         productId = extractResponseBody(productResponse, "Product").getProductId();
 
@@ -49,7 +49,7 @@ class StockMovementControllerTest extends TestBase {
         Manager manager = createTestManager();
         ResponseEntity<Manager> managerResponse = restTemplate.postForEntity(
                 baseUrl + "/managers",
-                new HttpEntity<>(manager, createHeaders("admin", "admin")),
+                new HttpEntity<>(manager),
                 Manager.class);
         managerId = extractResponseBody(managerResponse, "Manager").getmanagerId();
 
@@ -57,7 +57,7 @@ class StockMovementControllerTest extends TestBase {
         Vendor vendor = createTestVendor();
         ResponseEntity<Vendor> vendorResponse = restTemplate.postForEntity(
                 baseUrl + "/vendors",
-                new HttpEntity<>(vendor, createHeaders("admin", "admin")),
+                new HttpEntity<>(vendor),
                 Vendor.class);
         vendorId = extractResponseBody(vendorResponse, "Vendor").getVendorId();    }
 
@@ -67,7 +67,7 @@ class StockMovementControllerTest extends TestBase {
 
         ResponseEntity<StockMovement> response = restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/stock-movements?managerId=" + managerId + "&vendorId=" + vendorId,
-                new HttpEntity<>(movement, createHeaders("admin", "admin")),
+                new HttpEntity<>(movement),
                 StockMovement.class);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -81,7 +81,7 @@ class StockMovementControllerTest extends TestBase {
         StockMovement movement = createTestStockMovement(storeId, productId, 10, "STOCK-IN");
         restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/stock-movements?managerId=" + managerId + "&vendorId=" + vendorId,
-                new HttpEntity<>(movement, createHeaders("admin", "admin")),
+                new HttpEntity<>(movement),
                 StockMovement.class);
 
         ResponseEntity<StockMovement[]> response = restTemplate.getForEntity(
@@ -98,7 +98,7 @@ class StockMovementControllerTest extends TestBase {
         StockMovement movement = createTestStockMovement(storeId, productId, 10, "STOCK-IN");
         ResponseEntity<StockMovement> createResponse = restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/stock-movements?managerId=" + managerId + "&vendorId=" + vendorId,
-                new HttpEntity<>(movement, createHeaders("admin", "admin")),
+                new HttpEntity<>(movement),
                 StockMovement.class);
 
         Long movementId = createResponse.getBody().getStockMovementId();
@@ -118,7 +118,7 @@ class StockMovementControllerTest extends TestBase {
         StockMovement movement = createTestStockMovement(storeId, productId, 10, "STOCK-IN");
         restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/stock-movements?managerId=" + managerId + "&vendorId=" + vendorId,
-                new HttpEntity<>(movement, createHeaders("admin", "admin")),
+                new HttpEntity<>(movement),
                 StockMovement.class);
 
         LocalDateTime now = LocalDateTime.now();
@@ -148,7 +148,7 @@ class StockMovementControllerTest extends TestBase {
         StockMovement movement = createTestStockMovement(storeId, productId, 10, "STOCK-IN");
         ResponseEntity<StockMovement> createResponse = restTemplate.postForEntity(
                 baseUrl + "/stores/" + storeId + "/stock-movements?managerId=" + managerId + "&vendorId=" + vendorId,
-                new HttpEntity<>(movement, createHeaders("admin", "admin")),
+                new HttpEntity<>(movement),
                 StockMovement.class);
 
         Long movementId = createResponse.getBody().getStockMovementId();

@@ -16,7 +16,7 @@ class StoreControllerTest extends TestBase {
 
         ResponseEntity<Store> response = restTemplate.postForEntity(
                 baseUrl + "/stores",
-                new HttpEntity<>(store, createHeaders("admin", "admin")),
+                new HttpEntity<>(store),
                 Store.class);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -41,7 +41,7 @@ class StoreControllerTest extends TestBase {
         Store store = createTestStore();
         ResponseEntity<Store> createResponse = restTemplate.postForEntity(
                 baseUrl + "/stores",
-                new HttpEntity<>(store, createHeaders("admin", "admin")),
+                new HttpEntity<>(store),
                 Store.class);
         assertNotNull(createResponse.getBody());
         Long storeId = createResponse.getBody().getStoreId();
@@ -62,7 +62,7 @@ class StoreControllerTest extends TestBase {
         Store store = createTestStore();
         ResponseEntity<Store> createResponse = restTemplate.postForEntity(
                 baseUrl + "/stores",
-                new HttpEntity<>(store, createHeaders("admin", "admin")),
+                new HttpEntity<>(store),
                 Store.class);
         assertNotNull(createResponse.getBody());
         Long storeId = createResponse.getBody().getStoreId();
@@ -72,7 +72,7 @@ class StoreControllerTest extends TestBase {
         ResponseEntity<Store> response = restTemplate.exchange(
                 baseUrl + "/stores/" + storeId,
                 HttpMethod.PUT,
-                new HttpEntity<>(store, createHeaders("admin", "admin")),
+                new HttpEntity<>(store),
                 Store.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -86,7 +86,7 @@ class StoreControllerTest extends TestBase {
         Store store = createTestStore();
         ResponseEntity<Store> createResponse = restTemplate.postForEntity(
                 baseUrl + "/stores",
-                new HttpEntity<>(store, createHeaders("admin", "admin")),
+                new HttpEntity<>(store),
                 Store.class);
         assertNotNull(createResponse.getBody());
         Long storeId = createResponse.getBody().getStoreId();
