@@ -10,11 +10,20 @@ public class Vendor {
 
     private String name;
 
-    // Constructors, Getters, and Setters
+    public Vendor() {
+    }
 
     public Vendor(Long vendorId, String name) {
         this.vendorId = vendorId;
         this.name = name;
+    }
+
+    public Long getVendorId() {
+        return vendorId;
+    }
+
+    public void setVendorId(Long vendorId) {
+        this.vendorId = vendorId;
     }
 
     public String getName() {
