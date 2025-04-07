@@ -14,6 +14,7 @@ application's lifecycle. Composite primary key classes in JPA entities are typic
  */
 package com.bazaar.inventory_system.model;
 import java.io.Serializable;
+import java.util.Objects;
 
 public class StockId implements Serializable {
     private Long storeId;
@@ -44,5 +45,20 @@ public class StockId implements Serializable {
 
     public void setProductId(Long productId) {
         this.productId = productId;
+    }
+
+    //Adding this due to warning by H2 during integration testing
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        StockId stockId = (StockId) o;
+        return Objects.equals(storeId, stockId.storeId) &&
+                Objects.equals(productId, stockId.productId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(storeId, productId);
     }
 }
