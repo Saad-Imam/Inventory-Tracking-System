@@ -16,11 +16,17 @@ public class Manager {
     public Manager() {
     }
 
-    public Long getmanagerId() {
+    public Manager(Long managerId, String name, String passwordHash) {
+        this.managerId = managerId;
+        this.name = name;
+        this.passwordHash = passwordHash;
+    }
+
+    public Long getManagerId() {
         return managerId;
     }
 
-    public void setmanagerId(Long managerId) {
+    public void setManagerId(Long managerId) {
         this.managerId = managerId;
     }
 

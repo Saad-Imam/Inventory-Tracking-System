@@ -1,11 +1,13 @@
 package com.bazaar.inventory_system;
 
+import com.bazaar.inventory_system.config.TestConfig;
 import com.bazaar.inventory_system.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate; //For making HTTP requests in integration tests
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles; //Use specific profile inside application-test.properties
 
@@ -15,6 +17,7 @@ import java.util.Base64;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT) //to prevent port conflicts
 @ActiveProfiles("test")
+@Import(TestConfig.class) // Add this line
 public abstract class TestBase {
 
     @LocalServerPort
@@ -28,17 +31,6 @@ public abstract class TestBase {
     @BeforeEach //setUp() will run before every other test method, to construct URL for APIs
     protected void setUp() {
         baseUrl = "http://localhost:" + port;
-    }
-
-    protected HttpHeaders createHeaders(String username, String password) { //for testing with authentication
-        String auth = username + ":" + password;
-        byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes());
-        String authHeader = "Basic " + new String(encodedAuth);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authHeader);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return headers;
     }
     //creating test objects:
     protected Product createTestProduct() {

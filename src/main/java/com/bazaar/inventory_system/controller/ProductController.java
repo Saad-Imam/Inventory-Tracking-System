@@ -2,8 +2,10 @@ package com.bazaar.inventory_system.controller;
 
 import com.bazaar.inventory_system.exception.InvalidProductRequestException;
 import com.bazaar.inventory_system.exception.ProductNotFoundException;
+import com.bazaar.inventory_system.exception.StoreNotFoundException;
 import com.bazaar.inventory_system.model.Product;
 import com.bazaar.inventory_system.repository.ProductRepository;
+import com.bazaar.inventory_system.repository.StoreRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.beans.factory.annotation.Autowired; //for dependency injection
@@ -24,6 +26,9 @@ public class ProductController {
     @Autowired //inject an instance of this class automatically
     private ProductRepository productRepository;
 
+    @Autowired
+    private StoreRepository storeRepository;
+
     @Cacheable(value = "products")
     @GetMapping //GET HTTP requests mapping
     public ResponseEntity<List<Product>> getAllProducts() {
@@ -43,6 +48,11 @@ public class ProductController {
             @PathVariable Long storeId,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String category) {
+
+        // Verify the store exists
+        if (!storeRepository.existsById(storeId)) {
+            throw new StoreNotFoundException(storeId);
+        }
 
         // Case 1: Both name and category provided
         if (name != null && category != null) {
@@ -73,6 +83,10 @@ public class ProductController {
     public ResponseEntity<Product> createProduct(
             @PathVariable Long storeId,
             @Valid @RequestBody Product product) {
+        // Verify the store exists
+        if (!storeRepository.existsById(storeId)) {
+            throw new StoreNotFoundException(storeId);
+        }
         Product savedProduct = productRepository.save(product);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct);
     }

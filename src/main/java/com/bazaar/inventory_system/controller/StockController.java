@@ -34,7 +34,7 @@ public class StockController {
 
     @Autowired
     private VendorRepository vendorRepository;
-
+    /* Making these two entities for the case when stockMovement is independent of Manager or Vendor*/
     @Cacheable(value = "stockByStore", key = "#storeId")
     @GetMapping("/stock")
     public ResponseEntity<List<Stock>>  getAllStockForStore(@PathVariable Long storeId) {
@@ -105,6 +105,8 @@ public class StockController {
     @PostMapping("/sell")
     public ResponseEntity<Stock> sellProduct(
             @PathVariable Long storeId,
+            @RequestParam Long managerId,
+            @RequestParam Long vendorId,
             @RequestBody Stock stock) {
 
         // Validate input
@@ -124,21 +126,15 @@ public class StockController {
         // Update stock
         existingStock.setQuantity(existingStock.getQuantity() - stock.getQuantity());
         stockRepository.save(existingStock);
-
-        // Record movement with NEGATIVE quantity
-        StockMovement movement = new StockMovement();
-        movement.setStoreId(storeId);
-        movement.setProductId(stock.getProductId());
-        movement.setQuantityChange(-stock.getQuantity()); // Negative for sales
-        movement.setMovementType("SALE");
-        stockMovementRepository.save(movement);
-
+        createStockMovement(storeId, stock.getProductId(), -stock.getQuantity(), "Sale", managerId, vendorId);
         return ResponseEntity.ok(existingStock);
     }
 
     @PostMapping("/remove-stock")
     public ResponseEntity<Stock> removeStock(
             @PathVariable Long storeId,
+            @RequestParam Long managerId,
+            @RequestParam Long vendorId,
             @RequestBody Stock stock) {
 
         // Validate input
@@ -164,7 +160,7 @@ public class StockController {
                 .orElseThrow(() -> new ProductNotFoundException(stock.getProductId(), storeId));
 
         // Record movement
-        createStockMovement(storeId, stock.getProductId(), -stock.getQuantity(), "Removal");
+        createStockMovement(storeId, stock.getProductId(), -stock.getQuantity(), "Removal", managerId, vendorId);
         return ResponseEntity.ok(updatedStock);
     }
     // --- Helper Methods ---
@@ -173,16 +169,7 @@ public class StockController {
             throw new InvalidStockRequestException("Quantity must be positive");
         }
     }
-
-    private void createStockMovement(Long storeId, Long productId, int quantityChange, String movementType) {
-        StockMovement movement = new StockMovement();
-        movement.setStoreId(storeId);
-        movement.setProductId(productId);
-        movement.setQuantityChange(quantityChange);
-        movement.setMovementType(movementType);
-        movement.setTimestamp(LocalDateTime.now());
-        stockMovementRepository.save(movement);
-    }
+    
     private void createStockMovement(Long storeId, Long productId, int quantityChange, String movementType, Long managerId, Long vendorId) {
         // Fetch manager and vendor from repositories
         Manager manager = managerRepository.findById(managerId).orElseThrow(() -> new IllegalArgumentException("Manager not found"));

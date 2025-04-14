@@ -23,11 +23,12 @@ public class ManagerController {
     public Optional<Manager> getManagerById(@PathVariable Long managerId) {
         return managerRepository.findById(managerId);
     }
-
     @PostMapping
     public Manager createManager(@RequestBody Manager user) {
         return managerRepository.save(user);
     }
 
+    @DeleteMapping("/{managerId}")
+    public void deleteManagerById(@PathVariable Long managerId) {managerRepository.deleteById(managerId);}
 }
 

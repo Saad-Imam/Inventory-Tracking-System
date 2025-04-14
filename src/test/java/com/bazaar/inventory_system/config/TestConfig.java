@@ -12,15 +12,15 @@ import org.springframework.security.web.SecurityFilterChain;
 @Profile("test")
 public class TestConfig {
     @Bean
-    @Primary //added to make sure this runs first
+    @Primary
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
+                        .anyRequest().permitAll() // Allow all requests without auth
                 )
                 .csrf(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable); // disable basic auth for testing
-
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable); // Explicitly disable form login
         return http.build();
     }
 }
